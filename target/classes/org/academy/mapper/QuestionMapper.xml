@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.academy.mapper.QuestionMapper">
+
+<select id="getList" resultType="org.academy.domain.QuestionVO">
+<![CDATA[
+select * from question where que_code <> '0'
+]]>
+</select>
+
+
+<select id="getListWithPaging" resultType="org.academy.domain.QuestionVO">
+	<![CDATA[
+			select R.que_code, R.class_code, R.title, R.content, R.stu_id, R.updateDate, R.replycnt
+			from 
+			(
+	 		  	select rownum as rn, O.*
+	  		  	from
+	  		  	(
+	  		  		select Q.*
+	  		  		from question Q
+	  		  		where status = 'Y'
+	  		  		order by to_number(que_code) desc
+	  		  	) O
+	   		 	where rownum <= #{pageNum} * #{amount}
+	    	) R
+			where R.rn > (#{pageNum}-1) * #{amount}
+	]]>
+</select>
+
+
+<select id="getTotalCount" resultType="int">
+	select count(*) from question where que_code > '0'
+</select>
+
+
+
+
+<insert id="insert">
+	insert into question (que_code, stu_id, class_code, title, content)
+	values(seq_que.nextval, #{stu_id}, #{class_code}, #{title}, #{content})
+</insert>
+
+<insert id="insertSelectKey">
+	
+	<selectKey keyProperty="que_code" order="BEFORE"
+		resultType="String">
+		select seq_que.nextval from dual	
+	</selectKey>
+	
+	insert into question (que_code, stu_id, class_code, title, content)
+	values (#{que_code}, #{stu_id}, #{class_code}, #{title}, #{content})
+</insert>
+
+
+
+<select id="read" resultType="org.academy.domain.QuestionVO">
+	select * from question where que_code = #{que_code}
+</select>
+
+
+<delete id="delete" >
+	update question set status = 'N' 
+	where que_code = #{que_code}
+</delete>
+
+
+<update id="update">
+	update question
+	set title = #{title},
+	content = #{content},
+	stu_id = #{stu_id},
+	class_code = #{class_code},
+	updateDate = sysdate
+	where que_code = #{que_code}
+</update>
+
+
+<update id="updateReplycnt">
+	update question set replycnt = replycnt + #{amount} where que_code = #{que_code}
+</update>
+
+
+
+
+</mapper>
